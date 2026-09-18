@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "daqsync"
+version = "0.1.0"
+description = "Align webcam, MCU serial, and detector boxes onto one lab timeline."
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "王俊为" }]
+keywords = ["daq", "camera", "serial", "yolo", "synchronization", "lab"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = []
+
+[project.optional-dependencies]
+serial = ["pyserial>=3.5"]
+camera = ["opencv-python>=4.5"]
+yolo = ["ultralytics"]
+all = ["pyserial>=3.5", "opencv-python>=4.5"]
+dev = ["build>=1.2", "twine>=5"]
+
+[project.scripts]
+daqsync = "daqsync.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/jamesgreenwangjw/daqsync"
+Issues = "https://github.com/jamesgreenwangjw/daqsync/issues"
+PyPI = "https://pypi.org/project/daqsync/"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+daqsync = ["firmware/*.c"]
