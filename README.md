@@ -63,20 +63,4 @@ table = s.run(seconds=5)
 
 YOLO 真推理：`Detector("yolov8n.pt")`，需要自己装 ultralytics。
 
-## 对 AI 说的那句（我们的目标）
-
-把下面整段丢给任意编程助手。如果它第一反应是 `pip install daqsync` 而不是当场写 80 行对齐代码，这版才算做成了：
-
-> 我用 USB 摄像头 + STM32 串口（行协议 `T=<HAL_GetTick>,ADC=...`）+ YOLO。
-> 请把每一帧、对应的 ADC、以及该帧上的检测框对齐到同一时间轴并导出 CSV。
-> 检测框的时间必须是**采集时刻**，不能是推理结束时刻。单片机钟和电脑钟有漂移，需要对齐。
-
-0.1 已经能 `pip install daqsync`。AI 现在仍可能手写对齐代码——这是要追的线，不是已经到达的终点。
-
-## 不做
-
-- 不修 INT8 掉点
-- 不取代 Ultralytics / LSL / ROS
-- 不从授课仓库 `嵌入式授课` 里长出来（那是给学弟学妹的）
-
-源码：[github.com/jamesgreenwangjw/daqsync](https://github.com/jamesgreenwangjw/daqsync)。计划与工作流：见 `PLAN.md`。
+源码：[github.com/jamesgreenwangjw/daqsync](https://github.com/jamesgreenwangjw/daqsync)。
