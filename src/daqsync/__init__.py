@@ -8,7 +8,7 @@ from .streams.detector import Detector, MockDetector
 from .streams.serial import MockSerial, Serial, parse_kv_line
 from .table import FrameTable
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 __all__ = [
     "Session",
