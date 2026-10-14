@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Iterator, Optional
+from typing import Any, Optional
 
 from ..clocks import Stamp
 
@@ -28,7 +28,10 @@ class Stream(ABC):
 
     @abstractmethod
     def poll(self) -> Optional[Sample]:
-        """非阻塞取一个样本，没有则 None。"""
+        """取一个样本，没有则 None。
+
+        Mock 流是非阻塞的。真相机的 grab() 会等到下一帧。
+        """
 
     def close(self) -> None:
         self.stop()

@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import time
-from typing import Optional
 
 from ..clocks import now_stamp
-from .base import Sample, Stream
+from .base import Sample
 
 
 class MockDetector:

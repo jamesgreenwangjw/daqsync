@@ -1,9 +1,28 @@
 from __future__ import annotations
 
 import csv
-import json
 from pathlib import Path
-from typing import Any, List
+from typing import List
+
+CSV_FIELDS = [
+    "frame_id",
+    "t_capture",
+    "t_wall",
+    "mcu_tick",
+    "adc",
+    "serial_lag_s",
+    "infer_lag_s",
+    "n_boxes",
+    "conf_max",
+]
+
+
+def _fmt(value, digits=None):
+    if value is None:
+        return ""
+    if digits is None:
+        return str(value)
+    return f"{value:.{digits}f}"
 
 
 class FrameTable:
@@ -17,26 +36,21 @@ class FrameTable:
     def to_csv(self, path: str) -> None:
         p = Path(path)
         p.parent.mkdir(parents=True, exist_ok=True)
-        if not self.rows:
-            p.write_text("")
-            return
-        fieldnames = ["frame_id", "t_capture", "t_wall", "mcu_tick", "serial_lag_s", "infer_lag_s", "n_boxes", "serial_json", "boxes_json"]
-        with p.open("w", newline="") as f:
-            w = csv.DictWriter(f, fieldnames=fieldnames)
+        with p.open("w", newline="", encoding="utf-8") as f:
+            w = csv.DictWriter(f, fieldnames=CSV_FIELDS, extrasaction="ignore")
             w.writeheader()
             for r in self.rows:
-                boxes = r.get("boxes") or []
                 w.writerow(
                     {
-                        "frame_id": r["frame_id"],
-                        "t_capture": f"{r['t_capture']:.6f}",
-                        "t_wall": f"{r['t_wall']:.6f}",
+                        "frame_id": r.get("frame_id", ""),
+                        "t_capture": _fmt(r.get("t_capture"), 6),
+                        "t_wall": _fmt(r.get("t_wall"), 6),
                         "mcu_tick": r.get("mcu_tick", ""),
-                        "serial_lag_s": "" if r.get("serial_lag_s") is None else f"{r['serial_lag_s']:.6f}",
-                        "infer_lag_s": "" if r.get("infer_lag_s") is None else f"{r['infer_lag_s']:.6f}",
-                        "n_boxes": len(boxes) if boxes else 0,
-                        "serial_json": json.dumps(r.get("serial"), ensure_ascii=False),
-                        "boxes_json": json.dumps(boxes, ensure_ascii=False),
+                        "adc": "" if r.get("adc") is None else r.get("adc"),
+                        "serial_lag_s": _fmt(r.get("serial_lag_s"), 6),
+                        "infer_lag_s": _fmt(r.get("infer_lag_s"), 6),
+                        "n_boxes": r.get("n_boxes", 0),
+                        "conf_max": _fmt(r.get("conf_max"), 4),
                     }
                 )
 
@@ -47,5 +61,7 @@ class FrameTable:
             "n": len(self.rows),
             "mean_infer_lag_s": sum(lags) / len(lags) if lags else None,
             "mean_serial_lag_s": sum(slags) / len(slags) if slags else None,
+            "n_dropped_frames": self.meta.get("n_dropped_frames", 0),
             "clock_ab": self.meta.get("clock_ab"),
+            "clock_note": self.meta.get("clock_note"),
         }

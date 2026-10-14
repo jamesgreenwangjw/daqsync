@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import time
 from dataclasses import dataclass
 from typing import Optional
@@ -35,11 +36,11 @@ def now_stamp(source: str, seq: int, device_tick: Optional[float] = None) -> Sta
 
 def fit_linear_clock(host_mono, device_tick):
     """device_tick ≈ a * host_mono + b。至少 4 个有限样本，否则 None。纯 Python，不依赖 numpy。"""
-    pairs = [
-        (float(h), float(d))
-        for h, d in zip(host_mono, device_tick)
-        if h == h and d == d  # NaN 检查
-    ]
+    pairs = []
+    for h, d in zip(host_mono, device_tick):
+        hf, df = float(h), float(d)
+        if math.isfinite(hf) and math.isfinite(df):
+            pairs.append((hf, df))
     n = len(pairs)
     if n < 4:
         return None

@@ -7,7 +7,7 @@ from .streams.base import Sample
 
 
 def asof_join(left_times, left_rows, right_times, right_rows, tolerance: float):
-    """把 right 按时间贴到 left 上：每个 left 取不超过它、且 |dt|<tolerance 的最近 right。"""
+    """把 right 按时间贴到 left 上：每个 left 取不超过它、且 0 <= dt <= tolerance 的最近 right。"""
     j = 0
     n = len(right_times)
     out = []
@@ -34,8 +34,9 @@ def aligned_table(
 ):
     """一帧一行。
 
-    - MCU 用 host_mono asof（v0.1）；有 device_tick 时同时拟合漂移写进 meta。
-    - YOLO 框按 extras['frame_id'] 贴到同一帧，**不用** boxes.stamp（那是推理结束时刻）。
+    MCU 采样用主机 host_mono 做 asof。有 device_tick 时会拟合 clock_ab 写入 meta，
+    只作诊断，**不参与**本版本对齐（截距会因 perf_counter 从开机起算而很大）。
+    YOLO 框按 extras['frame_id'] 贴到同一帧，不用 boxes.stamp（那是推理结束时刻）。
     """
     box_by_fid = {}
     for b in boxes:
@@ -54,13 +55,26 @@ def aligned_table(
     for frame, ser, dt in joined:
         fid = frame.extras.get("frame_id", frame.stamp.seq)
         box = box_by_fid.get(fid)
+        payload = None if ser is None else ser.payload
+        box_payload = None if box is None else box.payload
+        adc = None
+        if isinstance(payload, dict):
+            adc = payload.get("ADC", payload.get("adc"))
+        confs: List[float] = []
+        if box_payload:
+            for b in box_payload:
+                if isinstance(b, dict) and b.get("conf") is not None:
+                    confs.append(float(b["conf"]))
         row = {
             "frame_id": fid,
             "t_capture": frame.stamp.host_mono,
             "t_wall": frame.stamp.host_wall,
-            "serial": None if ser is None else ser.payload,
+            "adc": adc,
+            "serial": payload,
             "serial_lag_s": dt,
-            "boxes": None if box is None else box.payload,
+            "boxes": box_payload,
+            "n_boxes": len(box_payload) if box_payload else 0,
+            "conf_max": max(confs) if confs else None,
             "t_infer_end": None if box is None else box.stamp.host_mono,
             "infer_lag_s": None
             if box is None
