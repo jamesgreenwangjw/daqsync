@@ -11,9 +11,9 @@
 pip install daqsync
 ```
 
-0.1 不插板子也能跑（假相机 / 假串口 / 假检测）。真摄像头和真串口是可选依赖：`pip install "daqsync[camera,serial]"`。
+当前版本 **0.2.0**。不插板子也能跑（假相机 / 假串口 / 假检测）。真摄像头和真串口是可选依赖：`pip install "daqsync[camera,serial]"`。
 
-## 最小例子（假数据，不插板子也能跑）
+## 最小例子
 
 ```python
 from daqsync import Session, MockCamera, MockSerial, MockDetector
@@ -24,31 +24,31 @@ table.to_csv("run.csv")
 print(table.summary())
 ```
 
+采集和推理不在同一条循环里：`MockDetector` 故意睡 40ms，Mock 相机仍应按约 30 fps 出帧。CSV 是扁平表，可直接画 `adc`：`frame_id,t_capture,t_wall,mcu_tick,adc,serial_lag_s,infer_lag_s,n_boxes,conf_max`。空表也会写出表头。
+
 CLI：
 
 ```bash
 daqsync --seconds 1 --out run.csv
 ```
 
-CSV 每一行是一帧：`t_capture`、`mcu_tick`、`serial_lag_s`、`infer_lag_s`、框和 ADC 的 JSON。
+## 时间轴约定
 
-## 为什么检测框不能用「推理结束时刻」
-
-`MockDetector` 故意 `sleep(infer_delay_s)`。对齐用的是 `frame_id`（采集时刻），不是 YOLO 返回的那一刹那。测试里会断言 `infer_lag_s ≈ 0.04`，并且框仍然贴在正确的那一帧上。
-
-把推理结束时刻当成拍摄时刻，是本科视觉+传感器论文里最常见的时间错误之一。这个库把这个错误做成默认不可犯。
+- 检测框挂在采集 `frame_id` 上，**不用**推理结束时刻。
+- 真相机时间戳是 `grab()` 成功的时刻，并设置 `CAP_PROP_BUFFERSIZE=1`。
+- `clock_ab`（MCU tick 对主机钟的线性拟合）只出现在 `summary()` 里，**作诊断，不参与对齐**。本版本 asof 用的是主机 `perf_counter`。截距很大是因为单调钟从开机起算，不是拟合坏了。
+- 串口样本的 `host_mono` 是**主机读到该行**的时刻，不是 MCU 发送时刻。串口独占一条线程，量化台阶等于轮询间隔（默认 0.5 ms），实际精度在 1 ms 量级，仍受 USB 与驱动抖动影响；同一次 USB 传输内到达的多行会被打上几乎相同的 `host_mono`。需要更精确的样本时刻时，以行内 `T=`（`device_tick`）为准。
+- 推理慢于采集时，待检测帧队列丢弃最旧帧，而非无界积压。`infer_lag_s` 因而是有界的，代价是部分帧没有检测框；丢弃数量见 `summary()["n_dropped_frames"]`。`detect_every` 是入队前的静态降采样，队列丢帧是运行时的动态降采样，二者独立。
 
 ## MCU 侧约定（STM32 HAL）
-
-串口每行：
 
 ```
 T=12345,ADC=2048
 ```
 
-`T` 必须是 `HAL_GetTick()`。完整片段在包内 `daqsync/firmware/stm32_tick_line.c`（仓库根目录也有一份 `firmware/`）。
+`T` 必须是 `HAL_GetTick()`。完整片段在包内 `daqsync/firmware/stm32_tick_line.c`。
 
-## 真摄像头 / 真串口（可选依赖）
+## 真摄像头 / 真串口
 
 ```bash
 pip install "daqsync[serial,camera]"
@@ -63,4 +63,6 @@ table = s.run(seconds=5)
 
 YOLO 真推理：`Detector("yolov8n.pt")`，需要自己装 ultralytics。
 
-源码：[github.com/jamesgreenwangjw/daqsync](https://github.com/jamesgreenwangjw/daqsync)。
+更新记录：[CHANGELOG.md](CHANGELOG.md)
+
+源码：[github.com/jamesgreenwangjw/daqsync](https://github.com/jamesgreenwangjw/daqsync)

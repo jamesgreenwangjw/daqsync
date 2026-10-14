@@ -1,4 +1,4 @@
-include LICENSE README.md
+include LICENSE README.md CHANGELOG.md
 recursive-include firmware *.c
 recursive-include tests *.py
 prune .venv
