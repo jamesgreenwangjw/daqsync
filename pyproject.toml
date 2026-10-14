@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "daqsync"
-version = "0.1.0"
+version = "0.2.0"
 description = "Align webcam, MCU serial, and detector boxes onto one lab timeline."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -39,6 +39,7 @@ daqsync = "daqsync.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/jamesgreenwangjw/daqsync"
+Changelog = "https://github.com/jamesgreenwangjw/daqsync/blob/main/CHANGELOG.md"
 Issues = "https://github.com/jamesgreenwangjw/daqsync/issues"
 PyPI = "https://pypi.org/project/daqsync/"
 
@@ -46,4 +47,4 @@ PyPI = "https://pypi.org/project/daqsync/"
 where = ["src"]
 
 [tool.setuptools.package-data]
-daqsync = ["firmware/*.c"]
+daqsync = ["firmware/*.c", "py.typed"]
