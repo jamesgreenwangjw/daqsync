@@ -7,6 +7,16 @@
 
 ## [未发布]
 
+## [0.2.1] - 2026-10-14
+
+### 变更
+
+- README 增加「更新记录」小节与 CI 状态徽章。PyPI 页面只渲染 README，此前的变更记录在项目页面上不可见。
+
+### 修复
+
+- 修正 README 中的 changelog 链接：原先使用相对路径，在 PyPI 页面上指向不存在的地址。
+
 ## [0.2.0] - 2026-10-14
 
 ### 新增
@@ -40,6 +50,7 @@
 - STM32 行协议（`T=<HAL_GetTick>,ADC=<值>`）解析，并附带最小固件片段。
 - 扁平 CSV 导出与 `daqsync` 命令行入口。
 
-[未发布]: https://github.com/jamesgreenwangjw/daqsync/compare/v0.2.0...HEAD
+[未发布]: https://github.com/jamesgreenwangjw/daqsync/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/jamesgreenwangjw/daqsync/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/jamesgreenwangjw/daqsync/compare/v0.1.0...v0.2.0
 [0.1.0]: https://pypi.org/project/daqsync/0.1.0/

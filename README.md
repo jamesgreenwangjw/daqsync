@@ -1,5 +1,7 @@
 # daqsync
 
+[![test](https://github.com/jamesgreenwangjw/daqsync/actions/workflows/test.yml/badge.svg)](https://github.com/jamesgreenwangjw/daqsync/actions/workflows/test.yml)
+
 摄像头、单片机串口、检测框，对齐到**同一条实验时间轴**。
 
 不是又一个 YOLO 后处理。不是又一个串口助手。  
@@ -63,6 +65,21 @@ table = s.run(seconds=5)
 
 YOLO 真推理：`Detector("yolov8n.pt")`，需要自己装 ultralytics。
 
-更新记录：[CHANGELOG.md](CHANGELOG.md)
+## 更新记录
+
+**0.2.1**（2026-10-14）
+- README 增加更新记录小节与 CI 状态徽章
+- 修正 changelog 链接：原先用相对路径，在 PyPI 页面上指向不存在的地址
+
+**0.2.0**（2026-10-14）
+- 修复推理慢于采集时 `infer_lag_s` 无界增长：待检队列改为有界，满时丢弃最旧帧
+- 修复真实相机下串口时间戳被帧周期量化：串口采集拆为独立线程
+- 新增 `py.typed` 类型标记与 `n_dropped_frames` 统计
+- CI 扩展至 Linux / macOS / Windows 与 Python 3.9 / 3.13，并加入 mypy 检查
+
+**0.1.0**（2026-09-18）
+- 首个版本：相机帧、串口采样与检测框对齐到同一时间轴，导出扁平 CSV
+
+完整变更见 [CHANGELOG.md](https://github.com/jamesgreenwangjw/daqsync/blob/main/CHANGELOG.md)。
 
 源码：[github.com/jamesgreenwangjw/daqsync](https://github.com/jamesgreenwangjw/daqsync)
