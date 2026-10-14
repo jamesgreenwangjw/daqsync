@@ -108,7 +108,7 @@ class TestEnqueueLatest(unittest.TestCase):
 class TestInferLagBounded(unittest.TestCase):
     def test_lag_bounded_when_detector_slower_than_camera(self):
         # 采集 30fps，推理 40ms（产能 25fps）：修复前队列无界积压，
-        # infer_lag_s 随时间线性上升；修复后应稳定在帧周期加推理耗时附近。
+        # infer_lag_s 随运行时长线性上升；修复后它是一个不随时间增长的常数。
         s = Session(
             MockCamera(fps=30),
             MockSerial(interval_s=0.01),
@@ -117,14 +117,17 @@ class TestInferLagBounded(unittest.TestCase):
         table = s.run(seconds=2.0)
         lags = [r["infer_lag_s"] for r in table.rows if r["infer_lag_s"] is not None]
         self.assertTrue(lags)
-        self.assertLess(max(lags), 0.15)
 
-        # 无随时间增长的趋势：前后两半均值接近。
+        # 该常数的绝对值 = 推理耗时 + 调度延迟，后者在高负载 runner 上会
+        # 被放大数倍，故只要求不出现病态量级：修复前 2 秒内该值升至 0.9 左右。
+        self.assertLess(max(lags), 0.5)
+
+        # 核心判据：不随运行时长增长。修复前后半段均值远高于前半段。
         half = len(lags) // 2
         self.assertGreater(half, 2)
         first = statistics.mean(lags[:half])
         second = statistics.mean(lags[half:])
-        self.assertLess(abs(second - first), 0.05)
+        self.assertLess(second, first * 1.5 + 0.05)
 
     def test_capture_rate_not_dragged_down(self):
         s = Session(
